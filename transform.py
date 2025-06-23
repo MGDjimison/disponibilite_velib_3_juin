@@ -43,7 +43,14 @@ def get_numerical_columns():
     return final_df
 
 
-def get_average_of_columns_by_departement():
+def get_boolean_columns():
+    transformed_velib_df = get_transformed_data()
+    # select boolean columns
+    df = transformed_velib_df.select_dtypes(include="bool")
+    return df
+
+
+def get_average_of_columns_by_department():
     transformed_velib_df = get_transformed_data()
     transformed_velib_df["departement"] = add_department()
     # get numerical columns dataframe
@@ -53,16 +60,16 @@ def get_average_of_columns_by_departement():
 
     numerical_columns_df["departement"] = transformed_velib_df["departement"]
     # print(numerical_columns_df)
-    data_groupby_departement_df = numerical_columns_df.groupby("departement")[
+    data_groupby_department_df = numerical_columns_df.groupby("departement")[
         numerical_columns
     ].mean()
     # round all columns
-    data_groupby_departement_df = data_groupby_departement_df.round()
+    data_groupby_department_df = data_groupby_department_df.round()
 
-    return data_groupby_departement_df
+    return data_groupby_department_df
 
 
-def get_average_of_columns_by_commune():
+def get_average_of_columns_by_city():
     transformed_velib_df = get_transformed_data()
     # get numerical columns dataframe
     numerical_columns_df = get_numerical_columns()
@@ -71,13 +78,13 @@ def get_average_of_columns_by_commune():
 
     numerical_columns_df["commune"] = transformed_velib_df["commune"]
     # print(numerical_columns_df)
-    data_groupby_commune_df = numerical_columns_df.groupby("commune")[
+    data_groupby_city_df = numerical_columns_df.groupby("commune")[
         numerical_columns
     ].mean()
     # round all columns
-    data_groupby_commune_df = data_groupby_commune_df.round()
+    data_groupby_city_df = data_groupby_city_df.round()
 
-    return data_groupby_commune_df
+    return data_groupby_city_df
 
 
 def get_velib_in_paris():
@@ -86,13 +93,13 @@ def get_velib_in_paris():
     return paris_velib_df
 
 
-def get_station_by_commune():
+def get_station_by_city():
     df = get_transformed_data()
     station_by_commune_df = df["commune"].value_counts()
     return station_by_commune_df
 
 
-def get_station_by_departement():
+def get_station_by_department():
     df = get_transformed_data()
     df["departement"] = add_department()
     station_by_departement_df = df["departement"].value_counts()

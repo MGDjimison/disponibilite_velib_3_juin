@@ -25,8 +25,9 @@ def get_transformed_data():
     # rename columns
     df = df.rename(
         columns={
+            "identifiant_station": "id_station",
             "nom_communes_équipées": "commune",
-            "code_insee_communes_équipées": "code_postal",
+            "code_insee_communes_équipées": "code_insee",
         }
     )
 
@@ -41,13 +42,6 @@ def get_numerical_columns():
     # drop unwanted column
     final_df = df.drop(["identifiant_station", "code_postal"], axis=1)
     return final_df
-
-
-def get_boolean_columns():
-    transformed_velib_df = get_transformed_data()
-    # select boolean columns
-    df = transformed_velib_df.select_dtypes(include="bool")
-    return df
 
 
 def get_average_of_columns_by_department():

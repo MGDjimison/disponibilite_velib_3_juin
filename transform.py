@@ -25,7 +25,6 @@ def get_transformed_data():
     # rename columns
     df = df.rename(
         columns={
-            "identifiant_station": "id_station",
             "nom_communes_équipées": "commune",
             "code_insee_communes_équipées": "code_insee",
         }
@@ -117,3 +116,17 @@ def add_department():
     # convert "code_postal" to its corresponding name
     df["departement"] = df["departement"].map(department)
     return df["departement"]
+
+
+def get_count_on_boolean_column():
+    df = get_transformed_data()
+    final_df = {
+        "station_en_fonctionnement": df["station_en_fonctionnement"].value_counts(),
+        "retour_vélib_possible": df["retour_vélib_possible"].value_counts(),
+        "borne_de_paiement_disponible": df[
+            "borne_de_paiement_disponible"
+        ].value_counts(),
+    }
+
+    return pandas.DataFrame(data=final_df)
+

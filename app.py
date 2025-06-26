@@ -1,5 +1,6 @@
-from load import *
+from transform import get_velib_in_paris, get_count_on_boolean_column
 
-load_number_station_by_department()
-load_number_station_by_city()
-load_velib_in_paris()
+paris_df = get_velib_in_paris()
+# print(paris_df.dtypes)
+print(get_count_on_boolean_column())
+

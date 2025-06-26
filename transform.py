@@ -118,15 +118,20 @@ def add_department():
     return df["departement"]
 
 
+def get_boolean_columns():
+    transformed_df = get_transformed_data()
+    # select boolean columns
+    df = transformed_df.select_dtypes(include="bool")
+    return df
+
+
 def get_count_on_boolean_column():
-    df = get_transformed_data()
-    final_df = {
-        "station_en_fonctionnement": df["station_en_fonctionnement"].value_counts(),
-        "retour_vélib_possible": df["retour_vélib_possible"].value_counts(),
-        "borne_de_paiement_disponible": df[
-            "borne_de_paiement_disponible"
-        ].value_counts(),
-    }
+    df = get_boolean_columns()
+    columns = df.columns
+
+    final_df = {}
+    for col in columns:
+        # create item with column name and count values
+        final_df[col] = df[col].value_counts()
 
     return pandas.DataFrame(data=final_df)
-

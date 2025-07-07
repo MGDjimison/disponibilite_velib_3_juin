@@ -14,9 +14,12 @@ def get_transformed_data():
     df["retour_vélib_possible"] = df["retour_vélib_possible"].map(names)
     df["borne_de_paiement_disponible"] = df["borne_de_paiement_disponible"].map(names)
 
-    # convert string to datetime
+    # convert column to human-friendly string
     df["actualisation_de_la_donnée"] = pandas.to_datetime(
-        df["actualisation_de_la_donnée"]
+        df["actualisation_de_la_donnée"], utc=True
+    )
+    df["actualisation_de_la_donnée"] = df["actualisation_de_la_donnée"].apply(
+        lambda x: x.strftime("%Y-%m-%d %X")
     )
 
     # remove useless column (full of nan)
@@ -102,7 +105,7 @@ def get_station_by_department():
 def add_department():
     df = get_transformed_data()
     # convert "code_postal" to string and extract two first characters
-    df["departement"] = df["code_postal"].apply(lambda val: str(val)[:2])
+    df["departement"] = df["code_insee"].apply(lambda val: str(val)[:2])
     department = {
         "75": "Paris",
         "77": "Seine-et-Marne",
@@ -113,7 +116,7 @@ def add_department():
         "94": "Val-De-Marne",
         "95": "Val-D'Oise",
     }
-    # convert "code_postal" to its corresponding name
+    # convert "code_insee" to its corresponding name
     df["departement"] = df["departement"].map(department)
     return df["departement"]
 

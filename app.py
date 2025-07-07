@@ -1,9 +1,11 @@
 from transform import (
-    add_department,
     get_transformed_data,
 )
 
+
 if __name__ == "__main__":
     cleaned_df = get_transformed_data()
-    cleaned_df["departement"] = add_department()
-    print(cleaned_df.head())
+    # print(cleaned_df.head())
+    for val in cleaned_df["actualisation_de_la_donnée"]:
+        print(type(val), val)
+        break

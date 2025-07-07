@@ -1,7 +1,9 @@
-from transform import get_velib_in_paris, get_count_on_boolean_column, get_boolean_columns
+from transform import (
+    add_department,
+    get_transformed_data,
+)
 
-paris_df = get_velib_in_paris()
-# print(paris_df.dtypes)
-print(get_boolean_columns())
-print(get_count_on_boolean_column())
-
+if __name__ == "__main__":
+    cleaned_df = get_transformed_data()
+    cleaned_df["departement"] = add_department()
+    print(cleaned_df.head())

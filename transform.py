@@ -1,4 +1,5 @@
 import pandas
+from geopy import Nominatim
 
 from extract import get_velib_data
 
@@ -138,3 +139,13 @@ def get_count_on_boolean_column():
         final_df[col] = df[col].value_counts()
 
     return pandas.DataFrame(data=final_df)
+
+
+def get_address(coordinate):
+    geolocator = Nominatim(user_agent="velib")
+    # reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    location = geolocator.reverse(coordinate)
+    address = location.address.split(",")
+    address = address[:3]
+    address = "".join([char for char in address])
+    return address

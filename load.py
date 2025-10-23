@@ -1,16 +1,20 @@
-from transform import get_velib_in_paris, get_station_by_city, get_station_by_department
+from transform import get_transformed_data
+import sqlite3
 
 
-def load_number_station_by_city():
-    df = get_station_by_city()
-    return df.to_csv("data/number_station_by_commune.csv", index=True)
+def get_connection():
+    conn = sqlite3.connect("data/disponibilite_velib.db")
+    return conn
 
 
-def load_number_station_by_department():
-    df = get_station_by_department()
-    return df.to_csv("data/number_station_by_department.csv", index=True)
+def get_cursor():
+    connection = get_connection()
+    cursor = connection.cursor()
+    return cursor
 
 
-def load_velib_in_paris():
-    df = get_velib_in_paris()
-    return df.to_csv("data/velib_in_paris.csv", index=False)
+def create_velib_table():
+    con = get_connection()
+    df = get_transformed_data()
+    df.to_sql("velib", con=con, if_exists="replace")
+

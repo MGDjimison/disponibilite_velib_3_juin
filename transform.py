@@ -8,6 +8,7 @@ def get_transformed_data():
     df = get_velib_data()
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
+    df = df.set_index("identifiant_station")
 
     # convert human-readable columns to boolean
     names = {"OUI": True, "NON": False}

@@ -8,6 +8,8 @@ def get_transformed_data():
     df = get_velib_data()
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
+
+    # set index with existing column
     df = df.set_index("identifiant_station")
 
     # convert human-readable columns to boolean
@@ -35,13 +37,14 @@ def get_transformed_data():
         }
     )
 
+    # add "departement" column based on "code_insee" column
+    df["departement"] = df["code_insee"].apply(lambda code: get_department(code))
+
     return df
 
 
-def add_department():
-    df = get_transformed_data()
-    # convert "code_postal" to string and extract two first characters
-    df["departement"] = df["code_insee"].apply(lambda val: str(val)[:2])
+def get_department(postal_code: int):
+    postal_code = str(postal_code)[:2]
     department = {
         "75": "Paris",
         "77": "Seine-et-Marne",
@@ -52,9 +55,9 @@ def add_department():
         "94": "Val-De-Marne",
         "95": "Val-D'Oise",
     }
-    # convert "code_insee" to its corresponding name
-    df["departement"] = df["departement"].map(department)
-    return df["departement"]
+
+    # get department value for postal_code
+    return department[postal_code]
 
 
 def get_address(coordinate: str):
@@ -63,4 +66,5 @@ def get_address(coordinate: str):
     address = location.address.split(",")
     address = address[:3]
     address = "".join([char for char in address])
+
     return address

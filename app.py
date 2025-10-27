@@ -1,8 +1,8 @@
 from transform import get_transformed_data
-from load import create_velib_table
+from extract import get_velib_data
 
 if __name__ == "__main__":
-    df = get_transformed_data()
-    print(df[["code_insee", "departement"]])
-
-    create_velib_table()
+    velib_df = get_velib_data()
+    print(velib_df)
+    velib_df = get_transformed_data(velib_df)
+    print(velib_df)

@@ -1,11 +1,9 @@
 import pandas
 from geopy import Nominatim
+import pandas as pd
 
-from extract import get_velib_data
 
-
-def get_transformed_data():
-    df = get_velib_data()
+def get_transformed_data(df: pd.DataFrame):
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 

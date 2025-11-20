@@ -1,5 +1,5 @@
-from transform import get_transformed_data
 import sqlite3
+import pandas as pd
 
 
 def get_connection():
@@ -15,7 +15,6 @@ def get_cursor():
     return cursor
 
 
-def create_velib_table():
+def create_db_table(df: pd.DataFrame, table_name: str):
     con = get_connection()
-    df = get_transformed_data()
-    df.to_sql("velib", con=con, if_exists="replace")
+    df.to_sql(name=table_name, con=con, if_exists="replace")

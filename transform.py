@@ -58,9 +58,11 @@ def get_department(postal_code: int):
     return department[postal_code]
 
 
+geolocator = Nominatim(user_agent="velib")
+
+
 def get_address(coordinate: str):
-    geolocator = Nominatim(user_agent="velib")
-    location = geolocator.reverse(coordinate)
+    location = geolocator.geocode(coordinate)
     address = location.address.split(",")
     address = address[:3]
     address = "".join([char for char in address])

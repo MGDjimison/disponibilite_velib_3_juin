@@ -1,6 +1,7 @@
 import pandas
 from geopy import Nominatim
 import pandas as pd
+from geopy.extra.rate_limiter import RateLimiter
 
 
 def get_transformed_data(df: pd.DataFrame):
@@ -32,11 +33,20 @@ def get_transformed_data(df: pd.DataFrame):
         columns={
             "nom_communes_équipées": "commune",
             "code_insee_communes_équipées": "code_insee",
+            "coordonnées_géographiques": "coords"
         }
     )
 
     # add "departement" column based on "code_insee" column
     df["departement"] = df["code_insee"].apply(lambda code: get_department(code))
+    # Initialize the geocoder
+    geolocator = Nominatim(user_agent="myGeocoder")
+    # Create a rate limiter
+    geocode = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    # convert 'coords' from string to a tuple of floats
+    df["coords"] = df["coords"].apply(lambda x: tuple(map(float, x.strip("()").split(","))))
+    # Add 'localisation' column to dataframe by applying geocode to 'coords' column
+    df["localisation"] = df["coords"].apply(geocode)
 
     return df
 
@@ -56,15 +66,3 @@ def get_department(postal_code: int):
 
     # get department value for postal_code
     return department[postal_code]
-
-
-geolocator = Nominatim(user_agent="velib")
-
-
-def get_address(coordinate: str):
-    location = geolocator.geocode(coordinate)
-    address = location.address.split(",")
-    address = address[:3]
-    address = "".join([char for char in address])
-
-    return address

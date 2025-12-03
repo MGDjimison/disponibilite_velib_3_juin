@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from tqdm import tqdm
+import numpy as np
 
 from opencage.geocoder import OpenCageGeocode
 from opencage.geocoder import InvalidInputError, RateLimitExceededError
@@ -40,6 +41,14 @@ def get_transformed_data(df: pd.DataFrame, run_geocode=False):
     # add "departement" column based on "code_insee" column
     df["departement"] = df["code_insee"].apply(lambda code: get_department(code))
     df["departement"] = df["departement"].astype("category")
+
+    # change dtypes to reduce memory usage
+    df["capacité_de_la_station"] = df["capacité_de_la_station"].astype(np.int16)
+    df["nombre_bornettes_libres"] = df["nombre_bornettes_libres"].astype(np.int16)
+    df["nombre_total_vélos_disponibles"] = df["nombre_total_vélos_disponibles"].astype(np.int16)
+    df["vélos_mécaniques_disponibles"] = df["vélos_mécaniques_disponibles"].astype(np.int16)
+    df["vélos_électriques_disponibles"] = df["vélos_électriques_disponibles"].astype(np.int16)
+    df["code_insee"] = df["code_insee"].astype(np.int32)
 
     if run_geocode:
         # For this part, you need to sign up on https://opencagedata.com/

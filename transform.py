@@ -1,10 +1,13 @@
-import pandas
-from geopy import Nominatim
 import pandas as pd
-from geopy.extra.rate_limiter import RateLimiter
+import os
+from dotenv import load_dotenv
+from tqdm import tqdm
+
+from opencage.geocoder import OpenCageGeocode
+from opencage.geocoder import InvalidInputError, RateLimitExceededError
 
 
-def get_transformed_data(df: pd.DataFrame):
+def get_transformed_data(df: pd.DataFrame, run_geocode=False):
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 
@@ -18,11 +21,8 @@ def get_transformed_data(df: pd.DataFrame):
     df["borne_de_paiement_disponible"] = df["borne_de_paiement_disponible"].map(names)
 
     # convert column to human-friendly string
-    df["actualisation_de_la_donnée"] = pandas.to_datetime(
+    df["actualisation_de_la_donnée"] = pd.to_datetime(
         df["actualisation_de_la_donnée"], utc=True
-    )
-    df["actualisation_de_la_donnée"] = df["actualisation_de_la_donnée"].apply(
-        lambda x: x.strftime("%Y-%m-%d %X")
     )
 
     # remove useless column (full of nan)
@@ -33,20 +33,41 @@ def get_transformed_data(df: pd.DataFrame):
         columns={
             "nom_communes_équipées": "commune",
             "code_insee_communes_équipées": "code_insee",
-            "coordonnées_géographiques": "coords"
+            "coordonnées_géographiques": "coords",
         }
     )
 
     # add "departement" column based on "code_insee" column
     df["departement"] = df["code_insee"].apply(lambda code: get_department(code))
-    # Initialize the geocoder
-    geolocator = Nominatim(user_agent="myGeocoder")
-    # Create a rate limiter
-    geocode = RateLimiter(geolocator.reverse, min_delay_seconds=1)
-    # convert 'coords' from string to a tuple of floats
-    df["coords"] = df["coords"].apply(lambda x: tuple(map(float, x.strip("()").split(","))))
-    # Add 'localisation' column to dataframe by applying geocode to 'coords' column
-    df["localisation"] = df["coords"].apply(geocode)
+    df["departement"] = df["departement"].astype("category")
+
+    if run_geocode:
+        # For this part, you need to sign up on https://opencagedata.com/
+        load_dotenv()
+        key = os.getenv("OPENCAGE_API_KEY")
+        geocoder = OpenCageGeocode(key)
+        coordinates = list(df["coords"])
+        locations = []
+
+        for coord in tqdm(coordinates):
+            coord = coord.split(",")
+            coord = {"latitude": coord[0], "longitude": coord[1]}
+
+            try:
+                results = geocoder.reverse_geocode(coord["latitude"], coord["longitude"], language="fr", no_annotations="1")
+                if results and len(results):
+                    location = results[0]["formatted"]
+                    locations.append(location)
+                    # print(results[0]['formatted'])
+                    # 11 Rue Sauteyron, 33800 Bordeaux, Frankreich
+            except RateLimitExceededError as ex:
+                # You have used the requests available on your plan.
+                print(ex)
+            except InvalidInputError as ex:
+                # this happens for example with invalid unicode in the input data
+                print(ex)
+
+        df["localisation"] = locations
 
     return df
 

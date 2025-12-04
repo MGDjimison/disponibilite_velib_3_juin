@@ -5,6 +5,6 @@ from load import create_db_table
 
 if __name__ == "__main__":
     velib_df = get_velib_data()
-    velib_df = get_transformed_data(velib_df, run_geocode=True)
+    velib_df = get_transformed_data(velib_df)
     print(velib_df.info(memory_usage="deep"))
     create_db_table(df=velib_df, table_name="velib")

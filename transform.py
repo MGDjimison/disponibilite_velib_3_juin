@@ -7,7 +7,7 @@ from opencage.geocoder import OpenCageGeocode
 from opencage.geocoder import InvalidInputError, RateLimitExceededError
 
 
-def get_transformed_data(df: pd.DataFrame):
+def transform_data(df: pd.DataFrame):
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 
@@ -20,7 +20,7 @@ def get_transformed_data(df: pd.DataFrame):
     df["retour_vélib_possible"] = df["retour_vélib_possible"].map(names)
     df["borne_de_paiement_disponible"] = df["borne_de_paiement_disponible"].map(names)
 
-    # convert column to human-friendly string
+    # convert column to datetime
     df["actualisation_de_la_donnée"] = pd.to_datetime(
         df["actualisation_de_la_donnée"], utc=True
     )
@@ -33,7 +33,7 @@ def get_transformed_data(df: pd.DataFrame):
         columns={
             "nom_communes_équipées": "commune",
             "code_insee_communes_équipées": "code_insee",
-            "coordonnées_géographiques": "coords",
+            "coordonnées_géographiques": "coordonnées",
         }
     )
 
@@ -60,7 +60,7 @@ def get_transformed_data(df: pd.DataFrame):
     load_dotenv()
     key = os.getenv("OPENCAGE_API_KEY")
     geocoder = OpenCageGeocode(key)
-    coordinates = list(df["coords"])
+    coordinates = list(df["coordonnées"])
     locations = []
 
     for coord in tqdm(coordinates):
@@ -77,8 +77,7 @@ def get_transformed_data(df: pd.DataFrame):
             if results and len(results):
                 location = results[0]["formatted"]
                 locations.append(location)
-                # print(results[0]['formatted'])
-                # 11 Rue Sauteyron, 33800 Bordeaux, Frankreich
+                # 11 Rue Sauteyron, 33800 Bordeaux, France
         except RateLimitExceededError as ex:
             # You have used the requests available on your plan.
             print(ex)

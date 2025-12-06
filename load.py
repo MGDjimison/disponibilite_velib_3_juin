@@ -1,7 +1,8 @@
-import sqlite3
 import pandas as pd
+import duckdb
 
 
-def create_db_table(df: pd.DataFrame, table_name: str):
-    connection = sqlite3.connect("data/disponibilite_velib.db")
-    df.to_sql(name=table_name, con=connection, if_exists="replace")
+def load_data(df: pd.DataFrame):
+    """Create duckdb db and table with given dataframe"""
+    con = duckdb.connect("data/duck_test_velib.db")
+    con.sql("CREATE TABLE velib AS SELECT * FROM df")

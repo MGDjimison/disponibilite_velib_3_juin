@@ -1,4 +1,4 @@
 pandas==2.2.3
-numpy==2.3.1
+tqdm==4.67.1
 opencage==3.2.0
-SQLAlchemy==2.0.43
+duckdb==1.4.2

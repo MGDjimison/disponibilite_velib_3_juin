@@ -7,7 +7,10 @@ from tqdm import tqdm
 from opencage.geocoder import OpenCageGeocode
 from opencage.geocoder import InvalidInputError, RateLimitExceededError
 
+from prefect import task, flow
 
+
+@task(log_prints=True)
 def extract_data():
     df = pd.read_csv(
         "data/velib-disponibilite-en-temps-reel-paris-data.csv", delimiter=";"
@@ -15,6 +18,7 @@ def extract_data():
     return df
 
 
+@task(log_prints=True)
 def transform_data(df: pd.DataFrame):
     # convert column names to snake case
     df.columns = df.columns.str.lower().str.replace(" ", "_")
@@ -98,10 +102,20 @@ def transform_data(df: pd.DataFrame):
     return df
 
 
+@task(log_prints=True)
 def load_data(df: pd.DataFrame):
     """Create duckdb db and table with given dataframe"""
-    con = duckdb.connect("data/disponibilite_velib.db")
+    con = duckdb.connect("data/disponibilite_velib.duckdb")
     con.sql("CREATE TABLE velib AS SELECT * FROM df")
+
+
+@flow(log_prints=True)
+def run_etl():
+    velib_df = extract_data()
+    print(velib_df.info(memory_usage="deep"))
+    velib_df = transform_data(velib_df)
+    print(velib_df.info(memory_usage="deep"))
+    load_data(velib_df)
 
 
 def get_department(postal_code: int):
@@ -122,9 +136,9 @@ def get_department(postal_code: int):
 
 
 if __name__ == "__main__":
-    velib_df = extract_data()
-    print(velib_df.info(memory_usage="deep"))
-    velib_df = transform_data(velib_df)
-    print(velib_df.info(memory_usage="deep"))
-    load_data(velib_df)
+    run_etl.serve(name="disponibilite-velib")
+    con = duckdb.connect("data/disponibilite_velib.duckdb")
+    query = con.sql("SELECT * FROM velib")
+    print(query)
+
 

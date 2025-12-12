@@ -28,9 +28,12 @@ def transform_data(df: pd.DataFrame):
 
     # convert human-readable columns to boolean
     names = {"OUI": True, "NON": False}
-    df["station_en_fonctionnement"] = df["station_en_fonctionnement"].map(names)
-    df["retour_vélib_possible"] = df["retour_vélib_possible"].map(names)
-    df["borne_de_paiement_disponible"] = df["borne_de_paiement_disponible"].map(names)
+    bool_cols = [
+        "station_en_fonctionnement",
+        "retour_vélib_possible",
+        "borne_de_paiement_disponible",
+    ]
+    df[bool_cols] = df[bool_cols].replace(names)
 
     # convert column to datetime
     df["actualisation_de_la_donnée"] = pd.to_datetime(
@@ -50,21 +53,17 @@ def transform_data(df: pd.DataFrame):
     )
 
     # add "departement" column based on "code_insee" column
-    df["departement"] = df["code_insee"].apply(lambda code: get_department(code))
+    df["departement"] = df["code_insee"].apply(get_department).astype("category")
 
-    # change dtypes to reduce memory usage
-    df["departement"] = df["departement"].astype("category")
-    df["capacité_de_la_station"] = df["capacité_de_la_station"].astype("int16")
-    df["nombre_bornettes_libres"] = df["nombre_bornettes_libres"].astype("int16")
-    df["nombre_total_vélos_disponibles"] = df["nombre_total_vélos_disponibles"].astype(
-        "int16"
-    )
-    df["vélos_mécaniques_disponibles"] = df["vélos_mécaniques_disponibles"].astype(
-        "int16"
-    )
-    df["vélos_électriques_disponibles"] = df["vélos_électriques_disponibles"].astype(
-        "int16"
-    )
+    # cast groups to reduce memory usage
+    int16_cols = [
+        "capacité_de_la_station",
+        "nombre_bornettes_libres",
+        "nombre_total_vélos_disponibles",
+        "vélos_mécaniques_disponibles",
+        "vélos_électriques_disponibles",
+    ]
+    df[int16_cols] = df[int16_cols].astype("int16")
     df["code_insee"] = df["code_insee"].astype("int32")
 
     # Reverse geocoding using OpenCage API

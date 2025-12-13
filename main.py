@@ -1,13 +1,8 @@
 import duckdb
 import pandas as pd
-import os
-from dotenv import load_dotenv
-from tqdm import tqdm
-
-from opencage.geocoder import OpenCageGeocode
-from opencage.geocoder import InvalidInputError, RateLimitExceededError
-
 from prefect import task, flow
+
+from lib import reverse_geocode_cached, get_department
 
 
 @task(log_prints=True)
@@ -68,35 +63,16 @@ def transform_data(df: pd.DataFrame):
 
     # Reverse geocoding using OpenCage API
     # For this part, you need to sign up on https://opencagedata.com/
-    load_dotenv()
-    key = os.getenv("OPENCAGE_API_KEY")
-    geocoder = OpenCageGeocode(key)
-    coordinates = list(df["coordonnées"])
-    locations = []
 
-    for coord in tqdm(coordinates):
-        coord = coord.split(",")
-        coord = {"latitude": coord[0], "longitude": coord[1]}
+    # split coordinates once
+    df[["lat", "lon"]] = df["coordonnées"].str.split(",", expand=True)
 
-        try:
-            results = geocoder.reverse_geocode(
-                coord["latitude"],
-                coord["longitude"],
-                language="fr",
-                no_annotations="1",
-            )
-            if results and len(results):
-                location = results[0]["formatted"]
-                locations.append(location)
-                # 11 Rue Sauteyron, 33800 Bordeaux, France
-        except RateLimitExceededError as ex:
-            # You have used the requests available on your plan.
-            print(ex)
-        except InvalidInputError as ex:
-            # this happens for example with invalid unicode in the input data
-            print(ex)
+    # reverse geocode with caching
+    df["localisation"] = df.apply(
+        lambda row: reverse_geocode_cached(row["lat"], row["lon"]), axis=1
+    )
 
-    df["localisation"] = locations
+    df = df.drop(["lat", "lon"], axis=1)
 
     return df
 
@@ -115,29 +91,11 @@ def run_etl():
     velib_df = transform_data(velib_df)
     print(velib_df.info(memory_usage="deep"))
     load_data(velib_df)
-
-
-def get_department(postal_code: int):
-    postal_code = str(postal_code)[:2]
-    department = {
-        "75": "Paris",
-        "77": "Seine-et-Marne",
-        "78": "Yvelines",
-        "91": "Essonne",
-        "92": "Hauts-de-Seine",
-        "93": "Seine-Saint-Denis",
-        "94": "Val-De-Marne",
-        "95": "Val-D'Oise",
-    }
-
-    # get department value for postal_code
-    return department[postal_code]
+    print("ETL Completed")
 
 
 if __name__ == "__main__":
     run_etl.serve(name="disponibilite-velib")
     con = duckdb.connect("data/disponibilite_velib.duckdb")
-    query = con.sql("SELECT * FROM velib")
-    print(query)
-
-
+    df = con.sql("SELECT * FROM velib LIMIT 5").df()
+    print(df)

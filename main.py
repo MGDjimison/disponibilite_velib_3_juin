@@ -2,7 +2,7 @@ import duckdb
 import pandas as pd
 from prefect import task, flow
 
-from lib import reverse_geocode_cached, get_department
+from lib import add_reverse_geocoding, get_department
 
 
 @task(log_prints=True)
@@ -64,15 +64,7 @@ def transform_data(df: pd.DataFrame):
     # Reverse geocoding using OpenCage API
     # For this part, you need to sign up on https://opencagedata.com/
 
-    # split coordinates once
-    df[["lat", "lon"]] = df["coordonnées"].str.split(",", expand=True)
-
-    # reverse geocode with caching
-    df["localisation"] = df.apply(
-        lambda row: reverse_geocode_cached(row["lat"], row["lon"]), axis=1
-    )
-
-    df = df.drop(["lat", "lon"], axis=1)
+    df = add_reverse_geocoding(df)
 
     return df
 

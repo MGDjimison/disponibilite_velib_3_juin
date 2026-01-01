@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from functools import lru_cache
 from opencage.geocoder import OpenCageGeocode
 from opencage.geocoder import InvalidInputError, RateLimitExceededError
+from concurrent.futures import ThreadPoolExecutor
 
 
 load_dotenv()
@@ -23,6 +24,26 @@ def reverse_geocode_cached(lat: str, lon: str):
         # this happens for example with invalid unicode in the input data
         print(ex)
     return None
+
+
+def reverse_from_row(row: dict):
+    return reverse_geocode_cached(row["lat"], row["lon"])
+
+
+def add_reverse_geocoding(df):
+    df[["lat", "lon"]] = df["coordonnées"].str.split(",", expand=True)
+    df["lat"] = df["lat"].str.strip()
+    df["lon"] = df["lon"].str.strip()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        df["localisation"] = list(
+            executor.map(reverse_from_row, df.to_dict("records"))
+        )
+        executor.shutdown(wait=True)
+
+    df = df.drop(["lat", "lon"], axis=1)
+
+    return df
 
 
 def get_department(postal_code: int):

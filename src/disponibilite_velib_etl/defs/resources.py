@@ -2,7 +2,7 @@ from dagster_duckdb import DuckDBResource
 
 import dagster as dg
 
-database_resource = DuckDBResource(database="src/disponibilite_velib_etl/defs/data/velib_duckdb.db")
+database_resource = DuckDBResource(database="src/disponibilite_velib_etl/defs/data/disponibilite-velib.duckdb")
 
 
 @dg.definitions

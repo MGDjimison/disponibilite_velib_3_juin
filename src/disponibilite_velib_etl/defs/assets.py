@@ -5,7 +5,7 @@ from dagster_duckdb import DuckDBResource
 
 
 START_FILE_PATH = "src/disponibilite_velib_etl/defs/data/velib-disponibilite-paris-data.csv"
-TRANSFORMED_FILE_PATH = "src/disponibilite_velib_etl/defs/data/transformed_velib_data.csv"
+TRANSFORMED_FILE_PATH = "src/disponibilite_velib_etl/defs/data/transformed-velib-data.csv"
 
 
 @dg.asset(group_name="velib_etl", description="Transform raw Velib data")

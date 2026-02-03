@@ -88,14 +88,4 @@ def final_velib(
         )
     context.log.info("Data loaded into DuckDB table 'velib' successfully.")
 
-    df = pd.read_csv(START_FILE_PATH, sep=";")
-    df["Actualisation de la donnée"] = pd.to_datetime(
-        df["Actualisation de la donnée"], utc=True
-    )
-    max_datetime = df["Actualisation de la donnée"].max()
-    # context.log.info(f"Most recent data timestamp: {max_datetime}")
-
-    return dg.MaterializeResult(
-        metadata={"most_recent_data_timestamp": str(max_datetime)}
-    )
 
